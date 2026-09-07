@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShinyGenUI social preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Faculty+Glyphic&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/p5@2.3.2/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5.brush@2.2.2/dist/p5.brush.js"></script>
+  <script src="../../src/p5.brush.skeleton.js"></script>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #f7f8f5;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    /* The wordmark is HTML, positioned over the reserved card by script. */
+    #wordmark {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Faculty Glyphic", serif;
+      font-weight: 400;
+      color: #386769;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      user-select: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="wordmark">ShinyGenUI</div>
+  <script>
+    // 1280 x 640 GitHub repository social preview. Eight columns by four rows
+    // of cards run to the edges; the wordmark sits in a lifted 4 x 2 panel in
+    // the centre, so it stays more than 40px clear of any edge and survives
+    // cropping to 1.91:1 or square previews.
+    const W = 1280;
+    const H = 640;
+    const TITLE = { col: 2, row: 1, spanC: 4, spanR: 2, kind: "panel" };
+
+    function setup() {
+      pixelDensity(1);
+      createCanvas(W, H, WEBGL);
+      background("#f7f8f5");
+      translate(-width / 2, -height / 2);
+
+      angleMode(DEGREES);
+      randomSeed(1106);
+      noiseSeed(1106);
+      brush.scaleBrushes(2);
+
+      const opts = {
+        cols: 8,
+        rows: 4,
+        gutter: 24,
+        reserve: [TITLE],
+      };
+
+      // Step through the pipeline so the title card can be kept level.
+      skeleton.dots(opts);
+      const cells = skeleton.layout(opts);
+      const title = cells.find((c) => c.reserved);
+      title.angle = 0;
+      skeleton.assign(cells, opts);
+
+      brush.wiggle(1.2);
+      cells.forEach((cell) => skeleton.drawCard(cell, opts));
+      brush.noField();
+
+      // Place the HTML wordmark over the title card.
+      const el = document.getElementById("wordmark");
+      el.style.left = title.x - title.w / 2 + "px";
+      el.style.top = title.y - title.h / 2 + "px";
+      el.style.width = title.w + "px";
+      el.style.height = title.h + "px";
+      el.style.fontSize = Math.round(title.h * 0.3) + "px";
+
+      document.fonts.ready.then(() => {
+        document.body.dataset.rendered = "true";
+      });
+    }
+  </script>
+</body>
+
+</html>
