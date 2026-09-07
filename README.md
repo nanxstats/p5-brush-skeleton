@@ -3,7 +3,8 @@
 Sketched generated interfaces. A small JavaScript library on top of
 [p5.js](https://p5js.org) and [p5.brush](https://github.com/acamposuribe/p5.brush)
 that draws a bento grid of UI cards in pencil and fills them with watercolor
-washes, hatching, bar charts, sparklines, avatars, toggles and buttons.
+washes, hatching, charts, forms, tables, tag chips, calendars, avatars,
+toggles and buttons.
 
 ![ShinyGenUI social preview](examples/shinygenui-social-preview/social-preview.png)
 
@@ -41,7 +42,11 @@ loop is needed.
 is a 1280 x 640 GitHub repository social preview. Eight columns by four rows
 of cards run to the edges, and the ShinyGenUI wordmark sits in a lifted 4 x 2
 card in the centre, well inside the 40px safe margin GitHub recommends so it
-survives cropping to other aspect ratios.
+survives cropping to other aspect ratios. Instead of sampling components at
+random, it pins `kind` and `color` on each cell before `assign()` so that no
+card repeats the component or color of a card it shares an edge with, every
+component appears once before any repeats, and plain washes and hatches only
+land on 1 x 1 cards.
 
 Open it in a browser, or render it to PNG with headless Chrome:
 
@@ -89,7 +94,7 @@ All options are optional. Defaults live in `skeleton.defaults`.
 | `gutter` | `26` | Space between cards. |
 | `spans` | `{ wide: 0.24, tall: 0.14, big: 0.08 }` | Chance a cell grows into a 2x1, 1x2 or 2x2 block. |
 | `reserve` | `[]` | Regions to keep, in grid units: `{ col, row, spanC, spanR, kind }`. See below. |
-| `kinds` | wash, hatch, text, avatar, button, bars, line, toggle | Components to sample from. Repeat a name to weight it. |
+| `kinds` | every component below except the reserved ones, wash twice | Components to sample from. Repeat a name to weight it. |
 | `pick` | `null` | `(cell, opts) => kind` to choose components yourself. |
 | `palette` | teal, coral, sage, sand, slate | Accent colors. The last one is used for alternate bars. |
 | `ink`, `muted`, `ghost`, `dot`, `lift` | | Outline, placeholder text, ghost outline, dot grid and panel colors. |
@@ -127,8 +132,31 @@ shows the pattern.
 
 ## Components
 
-Built in: `wash`, `hatch`, `text`, `avatar`, `button`, `bars`, `line`,
-`toggle`, plus `ghost`, `panel` and `blank` for reserved regions.
+Built in:
+
+| Name | Draws |
+|---|---|
+| `wash` | Solid watercolor card. |
+| `hatch` | Diagonally hatched card. |
+| `text` | Title bar and body copy. |
+| `avatar` | Avatar circle with two lines of text. |
+| `button` | Two lines of text and a primary button. |
+| `bars` | Bar chart. |
+| `line` | Sparkline. |
+| `toggle` | Rows of toggle switches with labels. |
+| `kpi` | Caption, big number block, change chip, footnote, and a trend line when wide or tall. |
+| `input` | Form: labelled input fields and a submit button. |
+| `tabs` | Tab bar with one active tab, then body copy. |
+| `progress` | Labelled progress bars. |
+| `list` | Checklist with checked and unchecked boxes. |
+| `chips` | Rows of tag chips under a caption. |
+| `slider` | Labelled range sliders. |
+| `pie` | Donut chart in three colors, with a legend when wide. |
+| `image` | Image placeholder: framed area with a sun and hills, caption when tall. |
+| `table` | Data table with a tinted header row. |
+| `calendar` | Month label over a grid of days, some marked. |
+
+Plus `ghost`, `panel` and `blank` for reserved regions.
 
 A component is a function `(cell, opts, helpers)` that draws inside
 `cell.pts`, the jittered corner polygon of the card. Add or replace one with
@@ -136,15 +164,20 @@ A component is a function `(cell, opts, helpers)` that draws inside
 `pick`.
 
 ```js
-// A KPI tile: big number block and a caption line.
-skeleton.register("kpi", (cell, opts, helpers) => {
-  const { x, y, w, h, color, angle, pts } = cell;
+// A rating: five dots, the first few filled in, then a review.
+skeleton.register("rating", (cell, opts, helpers) => {
+  const { color, pts } = cell;
+  const { left, top, cw, ch } = helpers.inner(cell, opts);
   helpers.outline(pts, opts, 0.95, helpers.maybeTint(cell, opts));
-  helpers.pill(x - w / 2 + opts.pad + 40, y - h * 0.1, 80, 36, angle, color, 190);
-  helpers.lines(x, y + h * 0.25, w - 2 * opts.pad, h * 0.2, opts, 1);
+  const filled = 2 + Math.floor(random(4));
+  for (let i = 0; i < 5; i++) {
+    const dot = helpers.circlePoints(left + 10 + i * 22, top + 12, 8, 16);
+    helpers.wash(dot, i < filled ? color : opts.ghost, 170, 0.05, 0.3, false);
+  }
+  helpers.lines(left + cw / 2, top + 20 + (ch - 20) / 2, cw, ch - 24, opts, 2);
 });
 
-skeleton.render({ kinds: ["wash", "kpi", "kpi", "bars"] });
+skeleton.render({ kinds: ["wash", "rating", "rating", "bars"] });
 ```
 
 `skeleton.helpers` provides:
@@ -153,11 +186,15 @@ skeleton.render({ kinds: ["wash", "kpi", "kpi", "bars"] });
 |---|---|
 | `rectPoints(x, y, w, h, angle, jitter)` | Rotated, jittered rectangle corners. |
 | `circlePoints(cx, cy, r, n, wobble)` | Slightly irregular circle polygon. |
+| `arcPoints(cx, cy, r, a0, a1, n)` | Points along an arc, angles in radians. Concatenate two for a ring sector. |
+| `inner(cell, opts)` | The card's content box after padding: `{ left, top, cw, ch }`. |
 | `wash(pts, color, opacity, bleed, texture, scatter)` | Watercolor fill. |
 | `outline(pts, opts, weight, tint)` | Pencil outline, optionally over a faint tint. |
+| `frame(x, y, w, h, angle, opts, color, weight)` | Thin pencil rectangle: inputs, image frames, checkboxes. |
 | `lines(x, y, w, h, opts, n, color)` | Placeholder text lines. |
 | `pill(x, y, w, h, angle, color, opacity)` | Solid small block: buttons, toggles, bars. |
 | `maybeTint(cell, opts)` | The card color or `null`, per `tintChance`. |
+| `others(cell, opts)` | Palette colors other than the card's own. |
 | `deg(a)` | Converts degrees to the current p5 `angleMode()` for `brush.hatch()`. |
 
 Every helper leaves stroke, fill and hatch disabled, so components can be
