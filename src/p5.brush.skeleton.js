@@ -647,7 +647,7 @@
   function assign(cells, options) {
     const opts = merge(options);
     for (const cell of cells) {
-      if (!cell.reserved) {
+      if (!cell.reserved && cell.kind == null) {
         cell.kind = opts.pick ? opts.pick(cell, opts) : root.random(opts.kinds);
       }
       if (cell.color == null) cell.color = root.random(opts.palette);
