@@ -52,6 +52,49 @@
     const H = 640;
     const TITLE = { col: 2, row: 1, spanC: 4, spanR: 2, kind: "panel" };
 
+    // Every component once before any repeats. Washes and hatches are accents:
+    // they only go on 1 x 1 cards so no large block is left empty.
+    const KINDS = [
+      "kpi", "input", "tabs", "progress", "list", "chips", "slider", "pie",
+      "image", "table", "calendar", "text", "avatar", "button", "bars", "line",
+      "toggle", "wash", "hatch",
+    ];
+    const ACCENTS = ["wash", "hatch"];
+
+    // True when two cells share an edge in grid units.
+    function adjacent(a, b) {
+      const overlapC = a.col < b.col + b.spanC && b.col < a.col + a.spanC;
+      const overlapR = a.row < b.row + b.spanR && b.row < a.row + a.spanR;
+      const besideC = a.col + a.spanC === b.col || b.col + b.spanC === a.col;
+      const besideR = a.row + a.spanR === b.row || b.row + b.spanR === a.row;
+      return (overlapR && besideC) || (overlapC && besideR);
+    }
+
+    // The least-used value in `pool` that no neighbor already has.
+    function leastUsed(pool, used, avoid) {
+      let candidates = pool.filter((v) => !avoid.has(v));
+      if (candidates.length === 0) candidates = pool;
+      const min = Math.min(...candidates.map((v) => used.get(v) || 0));
+      return random(candidates.filter((v) => (used.get(v) || 0) === min));
+    }
+
+    // Give each card a kind and a color that none of its edge neighbors
+    // share, so no two adjacent cards read as the same block.
+    function vary(cells, palette) {
+      const usedKind = new Map();
+      const usedColor = new Map();
+      for (const cell of cells) {
+        if (cell.reserved) continue;
+        const near = cells.filter((o) => o !== cell && !o.reserved && o.kind && adjacent(cell, o));
+        const avoid = new Set(near.map((o) => o.kind));
+        if (cell.spanC > 1 || cell.spanR > 1) ACCENTS.forEach((k) => avoid.add(k));
+        cell.kind = leastUsed(KINDS, usedKind, avoid);
+        cell.color = leastUsed(palette, usedColor, new Set(near.map((o) => o.color)));
+        usedKind.set(cell.kind, (usedKind.get(cell.kind) || 0) + 1);
+        usedColor.set(cell.color, (usedColor.get(cell.color) || 0) + 1);
+      }
+    }
+
     function setup() {
       pixelDensity(1);
       createCanvas(W, H, WEBGL);
@@ -59,8 +102,8 @@
       translate(-width / 2, -height / 2);
 
       angleMode(DEGREES);
-      randomSeed(1106);
-      noiseSeed(1106);
+      randomSeed(7);
+      noiseSeed(7);
       brush.scaleBrushes(2);
 
       const opts = {
@@ -70,11 +113,13 @@
         reserve: [TITLE],
       };
 
-      // Step through the pipeline so the title card can be kept level.
+      // Step through the pipeline so the title card can be kept level and
+      // kinds and colors can be spread across the grid before assign().
       skeleton.dots(opts);
       const cells = skeleton.layout(opts);
       const title = cells.find((c) => c.reserved);
       title.angle = 0;
+      vary(cells, skeleton.defaults.palette);
       skeleton.assign(cells, opts);
 
       brush.wiggle(1.2);
