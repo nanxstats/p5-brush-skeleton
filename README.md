@@ -19,7 +19,7 @@ toggles and buttons.
     translate(-width / 2, -height / 2);  // Work in top-left coordinates
 
     angleMode(DEGREES);
-    randomSeed(73021);                   // Reproducible output
+    randomSeed(42);                      // Reproducible output
     brush.scaleBrushes(2.2);             // Scale brushes to the canvas
 
     skeleton.render({ cols: 7, rows: 9 });
@@ -33,34 +33,37 @@ loop is needed.
 
 ## Examples
 
+Both examples are built the same way:
+
+- **Edgeless.** The bento grid is laid out over an area wider and taller than
+  the canvas, so cards run off all four edges and the image reads as a window
+  onto a larger sheet rather than a framed grid.
+- **Golden wordmark panel.** The wordmark sits in a lifted 4 x 3 panel in the
+  centre that is a golden rectangle: `rows` is given as an array of heights,
+  and the three rows the panel spans are sized to make it so.
+- **Spread components and colors.** Instead of sampling at random, each
+  example pins `kind` and `color` on every cell before `assign()` so that no
+  card repeats the component or color of a card it shares an edge with, every
+  component appears once before any repeats, and plain washes and hatches only
+  land on 1 x 1 cards.
+- **Aligned cards.** `tilt`, `offset` and `jitter` are zero and `wiggle` is
+  faint: with this many cards, any misalignment between neighbors reads as
+  noise, and the pencil and watercolor texture carry the hand-drawn feel on
+  their own.
+
 [`examples/shinygenui-social-preview`](examples/shinygenui-social-preview/index.html)
-is a 1280 x 640 GitHub repository social preview. Eight columns by four rows
-of cards run to the edges, and the ShinyGenUI wordmark sits in a lifted 4 x 2
-card in the centre, well inside the 40px safe margin GitHub recommends so it
-survives cropping to other aspect ratios. Instead of sampling components at
-random, it pins `kind` and `color` on each cell before `assign()` so that no
-card repeats the component or color of a card it shares an edge with, every
-component appears once before any repeats, and plain washes and hatches only
-land on 1 x 1 cards.
+is a 1280 x 640 GitHub repository social preview on a 12 x 7 grid.
+The wordmark panel stays well inside the 40px safe margin GitHub recommends,
+so it survives cropping to other aspect ratios.
 
 ![ShinyGenUI social preview](examples/shinygenui-social-preview/social-preview.png)
-
-Open it in a browser, or render it to PNG with headless Chrome:
 
 ```sh
 tools/render.sh examples/shinygenui-social-preview/index.html social-preview.png 1280 640
 ```
 
 [`examples/shinygenui-hero`](examples/shinygenui-hero/index.html) is a
-1920 x 1187 blog post hero, a golden rectangle, built the same way with a
-14 x 9 grid laid out over an area wider and taller than the canvas. Cards run
-off all four edges, so the image reads as a window onto a larger sheet rather
-than a framed grid. The wordmark panel is a golden rectangle too: `rows` is
-given as an array of heights, and the three rows the panel spans are sized to
-make it so. Unlike the social preview it sets `tilt`, `offset` and `jitter`
-to zero and uses a faint `wiggle`: with this many cards, any misalignment
-between neighbors reads as noise, and the pencil and watercolor texture carry
-the hand-drawn feel on their own.
+1920 x 1187 blog post hero, itself a golden rectangle, on a 14 x 9 grid.
 
 ![ShinyGenUI hero](examples/shinygenui-hero/hero.png)
 
@@ -72,9 +75,8 @@ tools/render.sh examples/shinygenui-hero/index.html hero.png 1920 1187
 
 ### `skeleton.render(options) -> cells`
 
-Draws the dot grid, lays out the bento grid, assigns a component to every
-card and draws it. Returns the cells so you can position other content over
-them.
+Draws the dot grid, lays out the bento grid, assigns a component to every card
+and draws it. Returns the cells so you can position other content over them.
 
 ### The pipeline, step by step
 

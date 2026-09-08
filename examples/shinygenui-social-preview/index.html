@@ -44,13 +44,28 @@
 <body>
   <div id="wordmark">ShinyGenUI</div>
   <script>
-    // 1280 x 640 GitHub repository social preview. Eight columns by four rows
-    // of cards run to the edges; the wordmark sits in a lifted 4 x 2 panel in
-    // the centre, so it stays more than 40px clear of any edge and survives
-    // cropping to 1.91:1 or square previews.
+    // 1280 x 640 GitHub repository social preview. The bento grid is laid out
+    // over an area wider and taller than the canvas, so cards run off all
+    // four edges and the composition reads as a window onto a larger sheet.
+    // The wordmark sits in a lifted 4 x 3 panel in the centre that is a
+    // golden rectangle: the three rows it spans are sized to make it so. The
+    // panel stays well inside the 40px safe margin GitHub recommends, so it
+    // survives cropping to 1.91:1 or square previews.
+    const PHI = (1 + Math.sqrt(5)) / 2;
     const W = 1280;
     const H = 640;
-    const TITLE = { col: 2, row: 1, spanC: 4, spanR: 2, kind: "panel" };
+    const OVER = 60;      // Overflow past the left and right edges.
+    const COLS = 12;
+    const ROWS = 7;
+    const GUTTER = 24;
+    const CELL = (W + 2 * OVER) / COLS;
+    const TITLE = { col: 4, row: 2, spanC: 4, spanR: 3, kind: "panel" };
+
+    // Row heights in canvas units: square cells, except the title rows.
+    const TITLE_ROW = ((TITLE.spanC * CELL - GUTTER) / PHI + GUTTER) / TITLE.spanR;
+    const ROW_HEIGHTS = Array.from({ length: ROWS }, (_, r) =>
+      r >= TITLE.row && r < TITLE.row + TITLE.spanR ? TITLE_ROW : CELL);
+    const LAYOUT_H = ROW_HEIGHTS.reduce((a, b) => a + b, 0);
 
     // Every component once before any repeats. Washes and hatches are accents:
     // they only go on 1 x 1 cards so no large block is left empty.
@@ -102,19 +117,29 @@
       translate(-width / 2, -height / 2);
 
       angleMode(DEGREES);
-      randomSeed(7);
-      noiseSeed(7);
+      randomSeed(1920);
+      noiseSeed(1920);
       brush.scaleBrushes(2);
 
+      // Cards are not tilted, shifted or corner-jittered: at this many cards,
+      // any misalignment between neighbors reads as noise rather than charm.
+      // A faint wiggle keeps the pencil grain, and the watercolor texture
+      // does the rest.
       const opts = {
-        cols: 8,
-        rows: 4,
-        gutter: 24,
+        x: -OVER,
+        y: -(LAYOUT_H - H) / 2,
+        width: W + 2 * OVER,
+        height: LAYOUT_H,
+        cols: COLS,
+        rows: ROW_HEIGHTS,
+        gutter: GUTTER,
         reserve: [TITLE],
+        wiggle: 0.4,
+        jitter: 0,
+        offset: 0,
+        tilt: 0,
       };
 
-      // Step through the pipeline so the title card can be kept level and
-      // kinds and colors can be spread across the grid before assign().
       skeleton.dots(opts);
       const cells = skeleton.layout(opts);
       const title = cells.find((c) => c.reserved);
@@ -122,7 +147,7 @@
       vary(cells, skeleton.defaults.palette);
       skeleton.assign(cells, opts);
 
-      brush.wiggle(1.2);
+      brush.wiggle(opts.wiggle);
       cells.forEach((cell) => skeleton.drawCard(cell, opts));
       brush.noField();
 
@@ -132,7 +157,7 @@
       el.style.top = title.y - title.h / 2 + "px";
       el.style.width = title.w + "px";
       el.style.height = title.h + "px";
-      el.style.fontSize = Math.round(title.h * 0.3) + "px";
+      el.style.fontSize = Math.round(title.h * 0.22) + "px";
 
       document.fonts.ready.then(() => {
         document.body.dataset.rendered = "true";
