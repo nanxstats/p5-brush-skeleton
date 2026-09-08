@@ -6,11 +6,6 @@ that draws a bento grid of UI cards in pencil and fills them with watercolor
 washes, hatching, charts, forms, tables, tag chips, calendars, avatars,
 toggles and buttons.
 
-![ShinyGenUI social preview](examples/shinygenui-social-preview/social-preview.png)
-
-No build step, no bundler, no dependencies beyond p5.js and p5.brush.
-One script file, one global: `skeleton`.
-
 ## Quick start
 
 ```html
@@ -47,6 +42,8 @@ random, it pins `kind` and `color` on each cell before `assign()` so that no
 card repeats the component or color of a card it shares an edge with, every
 component appears once before any repeats, and plain washes and hatches only
 land on 1 x 1 cards.
+
+![ShinyGenUI social preview](examples/shinygenui-social-preview/social-preview.png)
 
 Open it in a browser, or render it to PNG with headless Chrome:
 
