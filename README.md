@@ -52,17 +52,20 @@ tools/render.sh examples/shinygenui-social-preview/index.html social-preview.png
 ```
 
 [`examples/shinygenui-hero`](examples/shinygenui-hero/index.html) is a
-1920 x 1280 blog post hero built the same way, with a 13 x 9 grid laid out
-over an area one cell larger than the canvas on every side. Cards run off all
-four edges, so the image reads as a window onto a larger sheet rather than a
-framed grid. It also uses lower `wiggle`, `jitter` and `tilt` than the social
-preview: at this size a strong wiggle makes long card edges wobble, and the
-pencil and watercolor texture carry the hand-drawn feel on their own.
+1920 x 1187 blog post hero, a golden rectangle, built the same way with a
+14 x 9 grid laid out over an area wider and taller than the canvas. Cards run
+off all four edges, so the image reads as a window onto a larger sheet rather
+than a framed grid. The wordmark panel is a golden rectangle too: `rows` is
+given as an array of heights, and the three rows the panel spans are sized to
+make it so. Unlike the social preview it sets `tilt`, `offset` and `jitter`
+to zero and uses a faint `wiggle`: with this many cards, any misalignment
+between neighbors reads as noise, and the pencil and watercolor texture carry
+the hand-drawn feel on their own.
 
 ![ShinyGenUI hero](examples/shinygenui-hero/hero.png)
 
 ```sh
-tools/render.sh examples/shinygenui-hero/index.html hero.png 1920 1280
+tools/render.sh examples/shinygenui-hero/index.html hero.png 1920 1187
 ```
 
 ## API
@@ -213,20 +216,16 @@ composed without state leaking between them.
 
 ## Rendering to PNG
 
-`tools/render.sh` screenshots a page with headless Chrome at a given size and
-fails if WebGL did not initialize:
+`tools/render.sh` screenshots a page with headless Chrome at a given size,
+fails if WebGL did not initialize, and compresses the capture in place with
+`pngquant` when it is installed:
 
 ```sh
 tools/render.sh <input.html> <output.png> <width> <height>
 ```
 
-Chrome needs network access for the CDN scripts and, in the social preview
-example, for the Google font. `pngquant` roughly halves the size of a capture
-with no visible change:
-
-```sh
-pngquant --force --output social-preview.png social-preview.png
-```
+Chrome needs network access for the CDN scripts and for the Google font the
+examples use.
 
 ## License
 
