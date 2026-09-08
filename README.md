@@ -54,6 +54,20 @@ Open it in a browser, or render it to PNG with headless Chrome:
 tools/render.sh examples/shinygenui-social-preview/index.html social-preview.png 1280 640
 ```
 
+[`examples/shinygenui-hero`](examples/shinygenui-hero/index.html) is a
+1920 x 1280 blog post hero built the same way, with a 13 x 9 grid laid out
+over an area one cell larger than the canvas on every side. Cards run off all
+four edges, so the image reads as a window onto a larger sheet rather than a
+framed grid. It also uses lower `wiggle`, `jitter` and `tilt` than the social
+preview: at this size a strong wiggle makes long card edges wobble, and the
+pencil and watercolor texture carry the hand-drawn feel on their own.
+
+![ShinyGenUI hero](examples/shinygenui-hero/hero.png)
+
+```sh
+tools/render.sh examples/shinygenui-hero/index.html hero.png 1920 1280
+```
+
 ## API
 
 ### `skeleton.render(options) -> cells`
