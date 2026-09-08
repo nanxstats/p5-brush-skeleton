@@ -13,7 +13,7 @@
  *     createCanvas(1106, 1280, WEBGL);
  *     background("#f7f8f5");
  *     translate(-width / 2, -height / 2);
- *     randomSeed(1);
+ *     randomSeed(42);
  *     brush.scaleBrushes(2.2);
  *     skeleton.render({ cols: 7, rows: 9 });
  *   }
@@ -371,8 +371,11 @@
       frame(left + cw / 2, y0 + 28, cw, 26, angle, opts, opts.ink, 0.8);
       if (i === 0) lines(left + 8 + cw * 0.3, y0 + 28, cw * 0.6, 10, opts, 1);
     }
-    const bw = Math.min(cw * 0.6, 80);
-    pill(left + bw / 2, top + ch - 14, bw, 28, angle, color, 185);
+    // Submit button, only when it clears the last field.
+    if (ch - (n * pitch - 8) >= 34) {
+      const bw = Math.min(cw * 0.6, 80);
+      pill(left + bw / 2, top + ch - 14, bw, 28, angle, color, 185);
+    }
   };
 
   /** Tab bar with one active tab, then body copy. */
