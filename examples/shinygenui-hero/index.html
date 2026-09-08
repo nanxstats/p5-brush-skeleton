@@ -44,14 +44,26 @@
 <body>
   <div id="wordmark">ShinyGenUI</div>
   <script>
-    // 1920 x 1280 blog post hero. The bento grid is laid out over an area one
-    // cell larger than the canvas on every side, so cards run off all four
-    // edges and the composition reads as a window onto a larger sheet. The
-    // wordmark sits in a lifted 5 x 3 panel in the centre.
+    // 1920 x 1187 blog post hero, a golden rectangle. The bento grid is laid
+    // out over an area wider and taller than the canvas, so cards run off all
+    // four edges and the composition reads as a window onto a larger sheet.
+    // The wordmark sits in a lifted 4 x 3 panel in the centre that is itself
+    // a golden rectangle: the three rows it spans are sized to make it so.
+    const PHI = (1 + Math.sqrt(5)) / 2;
     const W = 1920;
-    const H = 1280;
-    const CELL = 160;
-    const TITLE = { col: 4, row: 3, spanC: 5, spanR: 3, kind: "panel" };
+    const H = Math.round(W / PHI);
+    const OVER = 80;      // Overflow past the left and right edges.
+    const COLS = 14;
+    const ROWS = 9;
+    const GUTTER = 24;
+    const CELL = (W + 2 * OVER) / COLS;
+    const TITLE = { col: 5, row: 3, spanC: 4, spanR: 3, kind: "panel" };
+
+    // Row heights in canvas units: square cells, except the title rows.
+    const TITLE_ROW = ((TITLE.spanC * CELL - GUTTER) / PHI + GUTTER) / TITLE.spanR;
+    const ROW_HEIGHTS = Array.from({ length: ROWS }, (_, r) =>
+      r >= TITLE.row && r < TITLE.row + TITLE.spanR ? TITLE_ROW : CELL);
+    const LAYOUT_H = ROW_HEIGHTS.reduce((a, b) => a + b, 0);
 
     // Every component once before any repeats. Washes and hatches are accents:
     // they only go on 1 x 1 cards so no large block is left empty.
@@ -71,7 +83,7 @@
       return (overlapR && besideC) || (overlapC && besideR);
     }
 
-    // The least-used value in `pool` that no neighbour already has.
+    // The least-used value in `pool` that no neighbor already has.
     function leastUsed(pool, used, avoid) {
       let candidates = pool.filter((v) => !avoid.has(v));
       if (candidates.length === 0) candidates = pool;
@@ -79,7 +91,7 @@
       return random(candidates.filter((v) => (used.get(v) || 0) === min));
     }
 
-    // Give each card a kind and a color that none of its edge neighbours
+    // Give each card a kind and a color that none of its edge neighbors
     // share, so no two adjacent cards read as the same block.
     function vary(cells, palette) {
       const usedKind = new Map();
@@ -107,22 +119,23 @@
       noiseSeed(1920);
       brush.scaleBrushes(2);
 
-      // One extra cell on each side; half of each edge card is cut off.
-      // Straighter edges than the social preview: at this size a wiggle of
-      // 1.2 makes long card edges wobble, so wiggle, jitter and tilt are all
-      // reduced and the pencil and watercolor texture carry the sketch feel.
+      // Unlike the social preview, cards are not tilted, shifted or
+      // corner-jittered: at this many cards, any misalignment between
+      // neighbors reads as noise rather than charm. A faint wiggle keeps
+      // the pencil grain, and the watercolor texture does the rest.
       const opts = {
-        x: -CELL / 2,
-        y: -CELL / 2,
-        width: W + CELL,
-        height: H + CELL,
-        cols: 13,
-        rows: 9,
-        gutter: 24,
+        x: -OVER,
+        y: -(LAYOUT_H - H) / 2,
+        width: W + 2 * OVER,
+        height: LAYOUT_H,
+        cols: COLS,
+        rows: ROW_HEIGHTS,
+        gutter: GUTTER,
         reserve: [TITLE],
         wiggle: 0.4,
-        jitter: 1.5,
-        tilt: 1.2,
+        jitter: 0,
+        offset: 0,
+        tilt: 0,
       };
 
       skeleton.dots(opts);

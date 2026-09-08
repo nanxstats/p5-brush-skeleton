@@ -2,10 +2,12 @@
 #
 # Render an example to PNG with headless Chrome.
 #
-#   tools/render.sh examples/shinygenui-hero/index.html hero.png 1920 1280
+#   tools/render.sh examples/shinygenui-hero/index.html hero.png 1920 1187
 #
 # Chrome may exit successfully even when WebGL fails to initialize, so the
-# script checks that the capture contains more than a handful of colors.
+# script checks that the capture contains more than a handful of colors. The
+# capture is then compressed in place with pngquant when it is installed,
+# which roughly halves the size with no visible change.
 
 set -euo pipefail
 
@@ -48,6 +50,10 @@ if command -v magick >/dev/null 2>&1; then
         echo "Render looks incomplete ($COLORS colors); check Chrome WebGL and CDN access."
         exit 1
     fi
+fi
+
+if command -v pngquant >/dev/null 2>&1; then
+    pngquant --force --skip-if-larger --output "$OUTPUT" "$OUTPUT"
 fi
 
 echo "Wrote $OUTPUT"
