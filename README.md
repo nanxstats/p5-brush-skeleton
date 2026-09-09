@@ -15,7 +15,7 @@ toggles and buttons.
 <script>
   function setup() {
     createCanvas(1106, 1280, WEBGL);     // p5.brush needs WEBGL
-    background("#f7f8f5");
+    background(skeleton.defaults.paper); // Off-white paper, #fdfdfd
     translate(-width / 2, -height / 2);  // Work in top-left coordinates
 
     angleMode(DEGREES);
@@ -112,6 +112,7 @@ All options are optional. Defaults live in `skeleton.defaults`.
 | `reserve` | `[]` | Regions to keep, in grid units: `{ col, row, spanC, spanR, kind }`. See below. |
 | `kinds` | every component below except the reserved ones, wash twice | Components to sample from. Repeat a name to weight it. |
 | `pick` | `null` | `(cell, opts) => kind` to choose components yourself. |
+| `paper` | `#fdfdfd` | Off-white paper the other colors are tuned for. Not painted by the library: pass it to `background()` before rendering. |
 | `palette` | teal, coral, sage, sand, slate | Accent colors. The last one is used for alternate bars. |
 | `ink`, `muted`, `ghost`, `dot`, `lift` | | Outline, placeholder text, ghost outline, dot grid and panel colors. |
 | `tilt` | `1.8` | Max card rotation in degrees. |

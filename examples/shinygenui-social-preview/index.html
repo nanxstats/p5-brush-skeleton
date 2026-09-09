@@ -18,7 +18,8 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
-      background: #f7f8f5;
+      background: #fdfdfd;
+      /* Matches skeleton.defaults.paper. */
     }
 
     canvas {
@@ -113,7 +114,7 @@
     function setup() {
       pixelDensity(1);
       createCanvas(W, H, WEBGL);
-      background("#f7f8f5");
+      background(skeleton.defaults.paper);
       translate(-width / 2, -height / 2);
 
       angleMode(DEGREES);
