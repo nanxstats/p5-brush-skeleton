@@ -11,7 +11,7 @@
  *
  *   function setup() {
  *     createCanvas(1106, 1280, WEBGL);
- *     background("#f7f8f5");
+ *     background(skeleton.defaults.paper);
  *     translate(-width / 2, -height / 2);
  *     randomSeed(42);
  *     brush.scaleBrushes(2.2);
@@ -56,7 +56,9 @@
     // Optional (cell, opts) => kind, overriding `kinds` sampling.
     pick: null,
 
-    // Colors.
+    // Colors. `paper` is the off-white the rest are tuned for. The library
+    // never paints it: pass it to background() before rendering.
+    paper: "#fdfdfd",
     palette: ["#386769", "#d8785e", "#8ea47a", "#e3c58a", "#7d93a3"],
     ink: "#2f4f52",
     muted: "#a3b0ae",
